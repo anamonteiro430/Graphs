@@ -8,24 +8,31 @@ class Graph:
     """Represent a graph as a dictionary of vertices mapping labels to edges."""
     def __init__(self):
         self.vertices = {}
+        """ '0': {'1', '3'},
+        '1': {'0'},
+        '2': set(),
+        '3': {'0'} """
 
     def add_vertex(self, vertex_id):
         """
-        Add a vertex to the graph.
+        Add a vertex to the graph. 
         """
-        pass  # TODO
+        self.vertices[vertex_id] = set()
+
+        return vertex_id
 
     def add_edge(self, v1, v2):
         """
-        Add a directed edge to the graph.
+        Add a directed edge to the graph. One-way from v1 to v2
         """
-        pass  # TODO
+        self.vertices[v1].add(v2)
 
     def get_neighbors(self, vertex_id):
         """
         Get all neighbors (edges) of a vertex.
         """
-        pass  # TODO
+        neighbors = self.vertices[vertex_id]
+        return neighbors
 
     def bft(self, starting_vertex):
         """
@@ -96,6 +103,7 @@ if __name__ == '__main__':
     graph.add_edge(3, 5)
     graph.add_edge(2, 3)
     graph.add_edge(4, 6)
+    print("Neighbors of 7", graph.get_neighbors(7))
 
     '''
     Should print:
