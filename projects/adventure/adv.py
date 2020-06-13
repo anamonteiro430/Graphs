@@ -12,10 +12,10 @@ world = World()
 # You may uncomment the smaller graphs for development and testing purposes.
 # map_file = "projects/adventure/maps/test_line.txt"
 
-#map_file = "projects/adventure/maps/test_cross.txt"
-map_file = "projects/adventure/maps/test_loop.txt"
-# map_file = "maps/test_loop_fork.txt"
-# map_file = "maps/main_maze.txt" """
+#map_file = "adventure/maps/test_cross.txt"    
+#map_file = "adventure/maps/test_loop.txt"     ✔✔✔✔
+#map_file = "adventure/maps/test_loop_fork.txt" 
+map_file = "adventure/maps/main_maze.txt"
 
 # Loads the map into a dictionary
 room_graph=literal_eval(open(map_file, "r").read())
@@ -24,7 +24,7 @@ world.load_graph(room_graph)
 #print("IS THIS REAL WORLD ????", room_graph)
 
 # Print an ASCII map
-world.print_rooms()
+#world.print_rooms()
 
 player = Player(world.starting_room)
 
@@ -37,61 +37,210 @@ traversal_path = []
 
 ###########################################
 
-def dir():
-    ''' directions = ["n", "s", "e", "w"]
-
-    print("inside fn")
-    #direction is 1st elem in directions 
-    direction = directions[0]
-    if direction == "n":
-        opposite = "s"
-    if direction == "s":
-        opposite = "n"
-    if direction == "e":
-        opposite = "w"
-    if direction == "w":
-        opposite = "e"
-    if player.travel(direction) is None:
-        for i in directions:
-            if player.travel(i) is not None:
-                print("whats this")
-        print("work") '''
-
-    
-
-
-
-
 def traversal_adv():
+
+    stack = []
+    visited = []
+    backtrack = []
+    world_map = {}
+    #print(room_graph)
+    #print("first", player.current_room.id)
+
+    #find and stack first room
+    first = player.current_room.id
+    stack.append(first)
     
-    ''' keys = room_graph.keys()
-    for i in keys:
-        world_map[i] = {} '''
+    #Pop value and set it to current   --- keep track of current
+    #Visit it if it's not visited   
+    #Get exits
+    #Populate world with exits ---> current : {n:"?" ...}
+    #Choose an exit, first key with value == "?"
+    #Travel to next room through that exit -- "n"
+    #Create logic to discover the opposite of exit
+    #Update path with exit coordinate
+    #Update world ----> current: {n: 1}
+    #Create next entry for the "next room", where we are now
+    #world : {0:{n:1...}, 1:{s:0}}     n is the exit and s is the opposite
 
-    values = list(room_graph.values())
+    #append "next room" to stack
+    #begin loop again
 
-    ''' for key in world_map:
-        print("Key in mine", key)
-        print("Value in Mine", world_map[key])
-
-        for key in room_graph:
-        #if set not necessary take the set out to switch to dict of dicts
-        #world_map[key] = "value[1]"
-            #world_map[key] = room_graph
-            print("key in world", key)
-            print("value in world", room_graph[key][1]) '''
-
-    #world_map[key] = room_graph[key][1]
     
-    ''' for i in values:
-        print("yo", i[1])
+    #print("first world", world_map)
+    
+    while len(visited) != len(room_graph):
+        found = "nothing"
+        #print("found is", found)
+    
+        #Pop it and set it to current
+        current = stack.pop()
+        #print("current room is", current)
 
-    for key in world_map:
-        for i in values:
-            print(i)
-        world_map[key] = i[0] '''
+        #Explore exits
+        exits = player.current_room.get_exits()
+        #print("exits from room", current , exits)
+    
+        #check if it's visited 
+        if current not in visited:
+            visited.append(current)
+            #print("visited", visited)
 
-    tests = []
+        #always add to backtrack list the rooms
+        backtrack.append(current)
+        #print("my backtrack is", backtrack)
+
+        #Add entry
+        if current not in world_map:    
+            world_map[current] = {i[1]: "?" for i in enumerate(exits)}
+          
+        #print("my world_map", world_map)
+        
+        
+
+        #pick first exit with value of "?"from world
+        for item in world_map[current].items():
+            #print("items IS", item)
+
+            if item[1] == '?':
+                found = "found"
+                exit = item[0]
+                #print("there one ?", exit)
+                #logic to discover opposite
+                if exit == "n" :
+                    opposite = "s"
+                if exit == "s" :
+                    opposite = "n"
+                if exit == "e" :
+                    opposite = "w"
+                if exit == "w" :
+                    opposite = "e"
+                break
+
+        if found == "found":
+            pass
+
+        else:
+            
+            #print("NO QUESTION MARKS")
+            #print("BACKTRACK", backtrack)
+            
+            #no questions marks, backtrack
+            value = backtrack.pop() #gives me the current room
+            before = backtrack.pop()
+            #print("value is ", value, "and before is ", before)
+
+            for key in world_map[value]:
+                #print("whats my key", key)
+                if world_map[value][key] == before:
+                    exit = key
+            
+            #print("this is the exit", exit)
+            
+            
+            #exit = exits[0]
+            #print("these are the exits", exits)
+            #print("random choice is", exit)
+            
+
+        #logic to discover opposite
+        if exit == "n" :
+            opposite = "s"
+        if exit == "s" :
+            opposite = "n"
+        if exit == "e" :
+            opposite = "w"
+        if exit == "w" :
+            opposite = "e"
+        
+        #print("breaking")
+        #print("exit is", exit)
+
+        #travel
+        #print("current room is", current)
+        player.travel(exit)
+        next_room = player.current_room.id
+        #print("about to travel from room ", current, exit, "to", next_room)
+
+        #update my exits
+        exits = player.current_room.get_exits()
+        #print("new exits", exits)
+
+        #print("exit was ", exit)
+        #print("opposite is", opposite)
+
+        #add coordinate to path  
+        traversal_path.append(exit)
+        #print("path", traversal_path)
+
+        #update current entry in map
+        
+        if world_map[current][exit] != '?':
+            pass
+            #print("do nothing")
+        else:
+            world_map[current].update({exit:next_room})
+        
+        #add next entry to my map 
+        #get exits
+        #exits = player.current_room.get_exits()
+        #print("exits from room", next_room , exits)
+
+        #Add entry
+        if next_room in world_map:
+            pass
+            #print(next_room, "  already in world") 
+        else:
+            world_map[next_room] = {i[1]: "?" for i in enumerate(exits)}
+
+        #print("whats this", world_map[next_room][opposite])
+        if  world_map[next_room][opposite] is True and world_map[next_room][opposite] != "?":
+            pass
+            #print("DONT UPDATE WORLD")
+        else:
+            #print("UPDATING")
+            world_map[next_room].update({opposite:current})
+        #print("my world_map", world_map)
+
+        #Add next_room to stack to explore in next iteration
+        stack.append(next_room)
+
+
+        #print("world now", world_map)
+
+        
+            
+
+
+            
+        
+
+
+
+
+
+
+
+    #print("random direction", random_dir)
+    #player.travel(random_dir)
+
+    
+        #next_room = player.current_room.get_exits()      
+        #world_map[current_room] = next_room
+  
+
+
+    #while len(stack) > 0:
+        
+        
+
+
+
+
+    #values = list(room_graph.values())
+
+
+
+    ''' tests = []
     for i in range(len(values)):
         tests.append(values[i][1])
 
@@ -100,205 +249,9 @@ def traversal_adv():
     for i in tests:
         for j in i:
             i[j] = "?"
-
-    print("WORLD MAP", world_map)
-    #######################################################################
-    #print("traversal path right now", traversal_path)
-    print("current room is ", player.current_room.id)
-    #keep track of visited node, has to be len of 500
-    visited = []
-    stack = []
-    path = []
-    count = 0
-    directions = ["n", "e", "s", "w"]
-    direction = directions[count]
-    
-    prev_room = player.current_room.id
-    stack.append(player.current_room.id)
-    
-    #while loop until
-    for i in range(14):
-        
-        
-        
-        print("enter main loop")
-        print("MAIN DIRECTION", direction)
-        room = stack.pop()
-        print("room is", room)
-
-        #check if it's on visited
-        if room not in visited:
-            print("visiting room ", room)
-            visited.append(room)
-        print("visited", visited)
-       
-       
-        if direction == "n":
-            opposite = "s"
-        if direction == "s":
-            opposite = "n"
-        if direction == "e":
-            opposite = "w"
-        if direction == "w":
-            opposite = "e" 
-
-        proom = player.current_room.id
-        print("prev room is ", proom)
-        print("travelinnggg", direction)
-        player.travel(direction)
-        print("current", player.current_room.id)
-        
-        if proom != player.current_room.id: 
-            print("different rooms, update map")
-            
-            
-
-        #Loop until player can move
-        while proom == player.current_room.id:
-            count += 1
-            print("in the same room")
-            if count > 3:
-                print("count is too high, resetting")
-                count = 0
-            else:
-                
-                print("count is cool")
-            print("COUNT", count)
-            direction = directions[count]
-            print("direction is ", direction)
-            player.travel(direction)
-            if direction == "n":
-                opposite = "s"
-            if direction == "s":
-                opposite = "n"
-            if direction == "e":
-                opposite = "w"
-            if direction == "w":
-                opposite = "e"
-            
-        
-            
-
-        world_map[proom][direction] = player.current_room.id
-        world_map[player.current_room.id][opposite] = proom
-        print("out of the loop!!")
-        print("map now", world_map)
-        print("now in room", player.current_room.id)
-
-        stack.append(player.current_room.id)
-        path.append(direction)
-        print("path", path)
-
+    print("WORLD MAP", world_map) '''
     
 
-    ''' while len(visited) < 5:
-        print(stack)
-        print(len(world_map))
-        value = stack.pop()
-        print("value", value)
-        if value not in visited:
-            visited.append(value)
-        
-        
-        print("current room exits are ", player.current_room.get_exits())
-        exits = player.current_room.get_exits()  
-        #Directions
-        direction = random.choice(exits)
-        def dir(direction):
-            for n in exits:
-                if world_map[value][direction] == "?" 
-
-
-
-                
-        alt_direction = exits[0]
-        print("direction is", direction)
-        if world_map[value][direction] == "?":
-                
-
-            if direction == "n":
-                opposite = "s"
-            if direction == "s":
-                opposite = "n"
-            if direction == "e":
-                opposite = "w"
-            if direction == "w":
-                opposite = "e"
-        else:
-            direction = alt_direction
-            if direction == "n":
-                opposite = "s"
-            if direction == "s":
-                opposite = "n"
-            if direction == "e":
-                opposite = "w"
-            if direction == "w":
-                opposite = "e"
-            
-        
-        
-        #travel to next room
-        player.travel(direction)
-        print("travel to room", player.current_room.id)
-        #update map
-        world_map[value][direction] = player.current_room.id
-        world_map[player.current_room.id][opposite] = value
-        print("world", world_map)
-        stack.append(player.current_room.id)
-        print("vis", visited, "stack", stack, "path", path) 
-
-
-    
-    room = player.current_room.id
-    print("start in room ", room)
-    #put in in stack
-    stack.append(room)
-    print("stack", stack)
-    #visit room
-    
-    while len(stack) > 0:
-        
-        
-        value = stack.pop() #tira do stack
-        if value not in visited:  #first is room 0
-            visited.append(room) # put in visited
-            print("VISITED, ", visited)
-
-        for i in world_map:
-            if "?" in world_map[i].values():
-                print("yup")
-                
-
-                
-        for i in list(world_map.values()):
-        for j in i:
-            if str(i[j]) not in '?':
-                print(path)
-            return path     
-            
-                
-
-                print("direction", direction)
-                print("opposite", opposite)
-                print("stack", stack)
-                #print("this should be next room", player.current_room.id)
-                
-                #update map in both directions
-                print("whats room previous", room)
-                
-
-                print("now my room is ", player.current_room.id)
-                print("WORLD UPDATED", world_map)
-                path.append(direction)
-                print("PATH", path)
-                #append current room to stack
-                room = player.current_room.id
-                print("NECT ROOM", room)
-                stack.append(room)
-                print("STACK", stack)
-            else:
-                print("NO", world_map[i].values())
-                return
             
 
         
@@ -307,7 +260,29 @@ def traversal_adv():
 
 
 
-# TRAVERSAL TEST
+
+
+
+
+#######
+# UNCOMMENT TO WALK AROUND
+#######
+'''  player.current_room.print_room_description(player)
+while True:
+    cmds = input("-> ").lower().split(" ")
+    if cmds[0] in ["n", "s", "e", "w"]:
+        player.travel(cmds[0], True)
+    elif cmds[0] == "q":
+        break
+    else:
+        print("I did not understand that command.") ''' 
+
+
+traversal_adv()
+print("LENGTH traversal_path = ", len(traversal_path) )
+
+
+#TRAVERSAL TEST
 visited_rooms = set()
 player.current_room = world.starting_room
 visited_rooms.add(player.current_room)
@@ -321,21 +296,3 @@ if len(visited_rooms) == len(room_graph):
 else:
     print("TESTS FAILED: INCOMPLETE TRAVERSAL")
     print(f"{len(room_graph) - len(visited_rooms)} unvisited rooms")
-
-
-
-#######
-# UNCOMMENT TO WALK AROUND
-#######
- player.current_room.print_room_description(player)
-while True:
-    cmds = input("-> ").lower().split(" ")
-    if cmds[0] in ["n", "s", "e", "w"]:
-        player.travel(cmds[0], True)
-    elif cmds[0] == "q":
-        break
-    else:
-        print("I did not understand that command.") '''
-
-
-traversal_adv()
